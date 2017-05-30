@@ -50,6 +50,7 @@ def handle(socket):
         if path == b"/action":
             print('Calling ok')
             ok(socket, query)
+            print('Returned from ok')
         else:
             err(socket, "404", "Not Found")
     else:

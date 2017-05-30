@@ -39,3 +39,6 @@ Contains various python modules used in the programs in the Devices directory.
 
 ## PC software directory
 Contains a support program that runs on a PC to get stock market quotes and send them as MQTT messages.
+
+## Tools directory
+Contains a Microsoft Excel spreadsheet to help develop special characters for a bitmap display.
