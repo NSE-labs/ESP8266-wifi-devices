@@ -1,3 +1,12 @@
+"""
+Experimental web server to get module configuration information
+Originally based on example code found at this link:
+https://lab.whitequark.org/notes/2016-10-20/controlling-a-gpio-through-an-esp8266-based-web-server/
+With significant modifications and enhancements to work in the module
+environment and to accept configuration information rather than just toggling
+a GPIO pin.
+"""
+
 
 # Begin configuration
 TITLE    = "Test Input"
@@ -73,12 +82,14 @@ server.bind(('0.0.0.0', 8080))
 server.listen(1)
 print('Listening on port 8080')
 while True:
-#    try:
-    (socket, sockaddr) = server.accept()
-    print("Received request from", sockaddr)
-    handle(socket)
-#    except:
-#        print('Exception!')
-#        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n")
-#        socket.write("<h1>Internal Server Error</h1>")
+    try:
+        (socket, sockaddr) = server.accept()
+        print("Received request from", sockaddr)
+        handle(socket)
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except:
+        print('Exception!')
+        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n")
+        socket.write("<h1>Internal Server Error</h1>")
     socket.close()
