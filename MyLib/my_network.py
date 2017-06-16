@@ -15,6 +15,22 @@ def wifi_connect(sta_if, ssid, password):
 
 
 def connect():
+    """
+    If already connected as a station, return
+
+    Configure as an access point and start a web server
+    to allow configuration from a browser.
+
+    After a timeout period with no web configuration activity
+      If a valid configuration exists
+        Connect to the configured network
+          If able to connect to configured network
+            Turn off web server and access point and return
+          Else if unable to connect to configured network
+            Start the whole process again
+      Else if no configuration exists
+        Stay as access point to allow web configuration
+    """
     access_pt = network.WLAN(network.AP_IF)
     station = network.WLAN(network.STA_IF)
     if station.isconnected():

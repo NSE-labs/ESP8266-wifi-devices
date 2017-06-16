@@ -20,22 +20,26 @@ micropython.alloc_emergency_exception_buf(100)
 
 class WebConfig:
     def __init__(self):
-        server = usocket.socket()
-        server.bind(('0.0.0.0', 8080))
-        server.listen(1)
+        self.server = usocket.socket()
+        self.server.bind(('0.0.0.0', 8080))
+        # self.server.setblocking(False)
+        self.server.listen(1)
         print('Listening on port 8080')
-        while True:
-            try:
-                (socket, sockaddr) = server.accept()
-                print("Received request from", sockaddr)
-                self.handle(socket)
-            except (KeyboardInterrupt, SystemExit):
+
+    def check(self):
+        try:
+            (socket, sockaddr) = self.server.accept()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except OSError as e:
+            if e.args[0] == 110:
+                # If the error says no data was available
+                return
+            else:
                 raise
-            except:
-                print('Exception!')
-                socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n")
-                socket.write("<h1>Internal Server Error</h1>")
-            socket.close()
+        print("Received request from", sockaddr)
+        self.handle(socket)
+        socket.close()
 
 
     def ok(self, socket, query):
@@ -56,7 +60,7 @@ class WebConfig:
     def handle(self, socket):
         line = socket.readline()
         print(line)
-        if(line):
+        if line:
             (method, url, version) = line.split(b" ")
             print(method, url, version)
             if b"?" in url:
@@ -96,4 +100,6 @@ class WebConfig:
         else:
             self.err(socket, "501", "Not Implemented")
 
-WebConfig()
+intfc = WebConfig()
+while True:
+    intfc.check()
