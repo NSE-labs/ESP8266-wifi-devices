@@ -1,5 +1,5 @@
 """
-Experimental web server to get module configuration information
+Web server to get module configuration information
 Originally based on example code found at this link:
 https://lab.whitequark.org/notes/2016-10-20/controlling-a-gpio-through-an-esp8266-based-web-server/
 With significant modifications and enhancements to work in the module
@@ -14,9 +14,7 @@ TITLE    = "Test Input"
 
 import machine
 import usocket
-import micropython
 
-micropython.alloc_emergency_exception_buf(100)
 
 class WebConfig:
     def __init__(self):
