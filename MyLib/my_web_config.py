@@ -17,27 +17,31 @@ import usocket
 
 
 class WebConfig:
-    def __init__(self):
+    def __init__(self, timeout):
         self.server = usocket.socket()
         self.server.bind(('0.0.0.0', 8080))
         # self.server.setblocking(False)
+        self.server.settimeout(timeout)
         self.server.listen(1)
         print('Listening on port 8080')
 
     def check(self):
         try:
+
             (socket, sockaddr) = self.server.accept()
         except (KeyboardInterrupt, SystemExit):
             raise
         except OSError as e:
             if e.args[0] == 110:
                 # If the error says no data was available
-                return
+                print('Timeout')
+                return False
             else:
                 raise
         print("Received request from", sockaddr)
         self.handle(socket)
         socket.close()
+        return True
 
 
     def ok(self, socket, query):
@@ -98,6 +102,7 @@ class WebConfig:
         else:
             self.err(socket, "501", "Not Implemented")
 
-intfc = WebConfig()
-while True:
-    intfc.check()
+intfc = WebConfig(timeout=60)
+while intfc.check():
+    print('Go again')
+print('Done')
