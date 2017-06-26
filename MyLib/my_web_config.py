@@ -17,17 +17,52 @@ import usocket
 
 
 class WebConfig:
-    def __init__(self, timeout):
+    """
+    Implement a basic web server to allow configuration of
+    a network-connected device from a browser.
+
+    A timeout parameter determines how long the check() method waits
+    for an initial connection. The default is None which waits
+    forever. Once a connection is made from a browser, the timeout
+    value is set to None and the server will not timeout. In this case the
+    user must specifically end the configuration session by selecting
+    that option on the web page displayed by the browser.
+
+    The goal is to also pass in the module configuration parameters that are
+    displayed and can be changed from the browser, but this is not
+    yet implemented.
+
+    Normally the programmer will instantiate the WebConfig class, and
+    and then call the check() method in a loop as long as it returns
+    True. When check() returns False it means a timeout occurred.
+    """
+
+    def __init__(self, timeout=None):
+        """
+        Start the web server.
+
+        The timeout parameter determines how long the server will
+        wait for an initial connection from a browser, in seconds.
+        Default is to wait forever.
+        """
         self.server = usocket.socket()
         self.server.bind(('0.0.0.0', 8080))
-        # self.server.setblocking(False)
         self.server.settimeout(timeout)
         self.server.listen(1)
         print('Listening on port 8080')
 
     def check(self):
-        try:
+        """
+        Wait for a connection from a browser.
 
+        If a timeout occurs, return False.
+
+        If a connection is made,
+          - set the timeout to None (wait forever)
+          - handle the browser request
+          - close the socket and return True
+        """
+        try:
             (socket, sockaddr) = self.server.accept()
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -39,10 +74,10 @@ class WebConfig:
             else:
                 raise
         print("Received request from", sockaddr)
+        self.server.settimeout(None)
         self.handle(socket)
         socket.close()
         return True
-
 
     def ok(self, socket, query):
         socket.write('HTTP/1.1 200 OK\r\n\r\n')
@@ -52,12 +87,10 @@ class WebConfig:
         socket.write('<input type="submit" value="Submit">')
         socket.write('</form></body></html>')
 
-
     def err(self, socket, code, message):
         print('Error:', code, message)
         socket.write("HTTP/1.1 "+code+" "+message+"\r\n\r\n")
         socket.write("<h1>"+message+"</h1>")
-
 
     def handle(self, socket):
         line = socket.readline()
