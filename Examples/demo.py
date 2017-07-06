@@ -2,8 +2,10 @@ import usocket as socket
 import ustruct as struct
 import machine
 import utime
-import my_ssd1306
 from umqtt.simple import MQTTClient
+
+import my_ssd1306
+import my_web_config
 
 i2c = machine.I2C(scl=machine.Pin(2), sda=machine.Pin(0))
 oled = my_ssd1306.SSD1306_I2C(128, 64, i2c)
@@ -40,10 +42,10 @@ def getNTPtime(host):
 # There's currently no timezone support in MicroPython, so
 # utime.localtime() will return UTC time (as if it was .gmtime())
 def settime():
-    t = getNTPtime('192.168.4.2')
+    t = getNTPtime('192.168.40.11')
     if t==0:
         return True # If an error occurred return an errorflag of True and don't set the time
-    t -= 21600      # Correct for timezone - 6 hours for CST
+    t -= 18000      # Correct for timezone - 5 hours for CDT
     tm = utime.localtime(t)
     tm = tm[0:3] + (0,) + tm[3:6] + (0,)
     machine.RTC().datetime(tm)
@@ -60,13 +62,13 @@ def updateDisplay(curtime, errorflag):
     oled.fill(0)
     line = 0
     for s in (timestr, datestr, line1, line2):
-        xpos = 64-(len(s)*4)    # Center the string which has variable length 
+        xpos = 64-(len(s)*4)    # Center the string which has variable length
         oled.text(s,xpos,lineypos[line])
         line += 1
     if errorflag:
         show_symbol(error_char, 0)
     else:
-        show_symbol(connected_char, 0)   
+        show_symbol(connected_char, 0)
     oled.show()
 
 def sub_callback(topic, msg):
@@ -76,7 +78,13 @@ def sub_callback(topic, msg):
     elif topic == b'line2':
         line2 = msg
 
-c = MQTTClient("ESP8266", "192.168.4.2")
+# Go into web configuration mode
+oled.fill(0)
+oled.text('Web config', 0, 0)
+oled.show()
+my_web_config.WebConfig(timeout=60)
+
+c = MQTTClient("ESP8266", "192.168.40.1")
 c.set_callback(sub_callback)
 
 try:
@@ -86,7 +94,7 @@ try:
 except:
     line1 = 'No MQTT server'
     line2 = 'reset to retry'
-    
+
 errorflag = settime()
 prevsecond = 0
 while True:
@@ -103,5 +111,5 @@ while True:
     except:
             line1 = 'No MQTT server'
             line2 = 'reset to retry'
-        
+
     utime.sleep_ms(250)

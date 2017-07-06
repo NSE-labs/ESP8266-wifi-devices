@@ -50,6 +50,9 @@ class WebConfig:
         self.server.settimeout(timeout)
         self.server.listen(1)
         print('Listening on port 8080')
+        while self.check():
+            print('Go again')
+        print('Done')
 
     def check(self):
         """
@@ -134,8 +137,3 @@ class WebConfig:
                 self.err(socket, "404", "Not Found")
         else:
             self.err(socket, "501", "Not Implemented")
-
-intfc = WebConfig(timeout=60)
-while intfc.check():
-    print('Go again')
-print('Done')
